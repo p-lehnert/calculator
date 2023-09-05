@@ -4,17 +4,18 @@ import resources.Constants;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Objects;
 
-public class CalculatorApp extends JFrame {
+public class CalculatorApp extends JFrame implements ActionListener {
 
-    private JPanel calcPanel;
-
-    private JTextArea textArea;
+    private final JTextArea textArea;
 
     public CalculatorApp () {
         super("Calculator");
 
-        calcPanel = new JPanel();
+        JPanel calcPanel = new JPanel();
         calcPanel.setLayout(new BoxLayout(calcPanel, BoxLayout.Y_AXIS));
         textArea = new JTextArea();
         calcPanel.add(textArea);
@@ -24,6 +25,7 @@ public class CalculatorApp extends JFrame {
 
         // first row
         JButton squareBtn = new JButton("x²");
+        squareBtn.addActionListener(this::squareAction);
         JButton rootBtn = new JButton("\u221A");
         JButton clearBtn = new JButton("C");
         JButton eraseBtn = new JButton("<-");
@@ -75,12 +77,44 @@ public class CalculatorApp extends JFrame {
 
         calcPanel.add(keyBoardPanel);
 
+
         this.add(calcPanel);
-        //this.add(keyBoardPanel);
         this.setPreferredSize(Constants.SCREEN_SIZE);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.pack();
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+    }
+
+    public void squareAction (ActionEvent e) {
+        if (!Objects.equals(textArea.getText(), "")) {
+
+            char lastChar = checkAndCut();
+
+            if (Character.isDigit(lastChar)) {
+                textArea.setText(textArea.getText() + "² ");
+            }
+        }
+        textArea.requestFocus();
+
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+    }
+
+    private char checkAndCut () {
+        if(textArea.getText() == null) {
+            return ' ';
+        }
+        char lastChar = textArea.getText().charAt(textArea.getText().length() - 1);
+        while (lastChar == ' ') {
+            lastChar = textArea.getText().charAt(textArea.getText().length() - 1);
+            textArea.setText(textArea.getText().substring(0, textArea.getText().length() - 1));
+        }
+        textArea.setText((textArea.getText() + lastChar));
+
+        return lastChar;
     }
 }
