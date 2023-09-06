@@ -34,28 +34,40 @@ public class CalculatorApp extends JFrame implements ActionListener {
         eraseBtn.addActionListener(this::eraseAction);
         // second row
         JButton divisionBtn = new JButton("\u00f7");
-        divisionBtn.addActionListener(this::arithmeticAction);
+        divisionBtn.addActionListener(this::arithmeticDigitAction);
         JButton sevenBtn = new JButton("7");
+        sevenBtn.addActionListener(this::arithmeticDigitAction);
         JButton eightBtn = new JButton("8");
+        eightBtn.addActionListener(this::arithmeticDigitAction);
         JButton nineBtn = new JButton("9");
+        nineBtn.addActionListener(this::arithmeticDigitAction);
         // third row
         JButton multiplyBtn = new JButton("*");
-        multiplyBtn.addActionListener(this::arithmeticAction);
+        multiplyBtn.addActionListener(this::arithmeticDigitAction);
         JButton fourBtn = new JButton("4");
+        fourBtn.addActionListener(this::arithmeticDigitAction);
         JButton fiveBtn = new JButton("5");
+        fiveBtn.addActionListener(this::arithmeticDigitAction);
         JButton sixBtn = new JButton("6");
+        sixBtn.addActionListener(this::arithmeticDigitAction);
         // fourth row
         JButton minusBtn = new JButton("-");
-        minusBtn.addActionListener(this::arithmeticAction);
+        minusBtn.addActionListener(this::arithmeticDigitAction);
         JButton oneBtn = new JButton("1");
+        oneBtn.addActionListener(this::arithmeticDigitAction);
         JButton twoBtn = new JButton("2");
+        twoBtn.addActionListener(this::arithmeticDigitAction);
         JButton threeBtn = new JButton("3");
+        threeBtn.addActionListener(this::arithmeticDigitAction);
         // fifth row
         JButton plusBtn = new JButton("+");
-        plusBtn.addActionListener(this::arithmeticAction);
+        plusBtn.addActionListener(this::arithmeticDigitAction);
         JButton commaBtn = new JButton(",");
+        commaBtn.addActionListener(this::arithmeticDigitAction);
         JButton zeroBtn = new JButton("0");
+        zeroBtn.addActionListener(this::arithmeticDigitAction);
         JButton equalsBtn = new JButton("=");
+        equalsBtn.addActionListener(this);
 
         keyBoardPanel.add(squareBtn);
         keyBoardPanel.add(rootBtn);
@@ -103,7 +115,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
         if (!Objects.equals(textArea.getText(), "")) {
             char charAtCaret = checkCharAtCaret();
             int caretIndex = textArea.getCaretPosition();
-            if (Character.isDigit(charAtCaret)) {
+            if (Character.isDigit(charAtCaret) || charAtCaret == ')') {
                 String calc = textArea.getText().substring(0, caretIndex) + "²" + textArea.getText().substring(caretIndex);
                 textArea.setText(calc);
                 textArea.setCaretPosition(caretIndex + 1);
@@ -164,7 +176,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
      *
      * @param e Actionevent
      */
-    private void arithmeticAction (ActionEvent e) {
+    private void arithmeticDigitAction (ActionEvent e) {
         JButton b = (JButton) e.getSource();
         String bValue = b.getText();
 
@@ -174,9 +186,11 @@ public class CalculatorApp extends JFrame implements ActionListener {
         textArea.requestFocus();
     }
 
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        textArea.setText(cutEquation(textArea.getText()));
     }
 
     /**
@@ -190,5 +204,43 @@ public class CalculatorApp extends JFrame implements ActionListener {
         } else {
             return textArea.getText().charAt(textArea.getCaretPosition() - 1);
         }
+    }
+
+    private void checkEquation() {
+
+    }
+
+    private String cutEquation() {
+        String equation = textArea.getText();
+        int index = 0;
+        int spaces = 0;
+        if(!Objects.equals(equation, "")) {
+            for (int i = 0; i < equation.length(); i++) {
+                if(equation.charAt(i) == ' ') {
+                    spaces++;
+                }
+            }
+            equation = equation.substring(spaces);
+        }
+
+        return equation;
+    }
+
+    private String cutEquation(String equationToCut) {
+        StringBuilder equation = new StringBuilder();
+        boolean symbol = false;
+        if(!Objects.equals(equationToCut, "")) {
+            for (int i = 0; i < equationToCut.length(); i++) {
+                if (equationToCut.charAt(i) == ' ' && symbol) {
+                    equation.append(cutEquation(equationToCut.substring(i)));
+                    break;
+                } else if(equationToCut.charAt(i) != ' ') {
+                    symbol = true;
+                    equation.append(equationToCut.charAt(i));
+                }
+            }
+        }
+
+        return equation.toString();
     }
 }
