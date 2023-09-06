@@ -206,24 +206,15 @@ public class CalculatorApp extends JFrame implements ActionListener {
         }
     }
 
-    private void checkEquation() {
 
-    }
-
-    private String cutEquation() {
+    private boolean correctEquation() {
         String equation = textArea.getText();
-        int index = 0;
-        int spaces = 0;
-        if(!Objects.equals(equation, "")) {
-            for (int i = 0; i < equation.length(); i++) {
-                if(equation.charAt(i) == ' ') {
-                    spaces++;
-                }
-            }
-            equation = equation.substring(spaces);
-        }
+        EquationPart lastPart = null;
+        int parenthesis = 0;
+        for(int i = 0; i < equation.length(); i++) {
 
-        return equation;
+        }
+        return true;
     }
 
     private String cutEquation(String equationToCut) {
@@ -240,7 +231,6 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 }
             }
         }
-
         return equation.toString();
     }
 }
