@@ -1,9 +1,16 @@
 package GUI;
 
 public enum EquationPart {
+    BEGINNING,
     NUMBER,
     COMMA,
-    PARENTHESIS,
+    PARENTHESIS_OPEN,
+    PARENTHESIS_CLOSE,
     SQUARE,
-    OPERATOR
+    ROOT,
+    PLUS,
+    MINUS,
+    DIV,
+    MULT,
+    ERROR
 }

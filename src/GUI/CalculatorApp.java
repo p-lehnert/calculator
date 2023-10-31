@@ -191,6 +191,11 @@ public class CalculatorApp extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         textArea.setText(cutEquation(textArea.getText()));
+        if (correctEquation()) {
+            textArea.setText("Korrekt");
+        } else {
+            textArea.setText("Inkorrekt");
+        }
     }
 
     /**
@@ -209,13 +214,82 @@ public class CalculatorApp extends JFrame implements ActionListener {
 
     private boolean correctEquation() {
         String equation = textArea.getText();
-        EquationPart lastPart = null;
+        EquationPart lastPart = EquationPart.BEGINNING;
         int parenthesis = 0;
+        char c;
         for(int i = 0; i < equation.length(); i++) {
-
+            c = equation.charAt(i);
+            EquationPart currentPart = identifyPart(c);
+            if (lastPart == EquationPart.ERROR || currentPart == EquationPart.ERROR) {
+                return false;
+            }
+            switch (lastPart) {
+                case BEGINNING:
+                    if (currentPart == EquationPart.PARENTHESIS_CLOSE || currentPart == EquationPart.DIV
+                    || currentPart == EquationPart.MULT) {
+                        return false;
+                    }
+                    break;
+                case COMMA:
+                    if (currentPart != EquationPart.NUMBER) {
+                        return false;
+                    }
+                    break;
+                case PARENTHESIS_OPEN:
+                    if (currentPart == EquationPart.PARENTHESIS_CLOSE || currentPart == EquationPart.SQUARE) {
+                        return false;
+                    }
+                    parenthesis++;
+                    break;
+                case ROOT:
+                    if (currentPart != EquationPart.PARENTHESIS_OPEN) {
+                        return false;
+                    }
+                    break;
+                case PARENTHESIS_CLOSE:
+                    parenthesis--;
+            }
+            if (i == equation.length() - 1 && (currentPart == EquationPart.ERROR || currentPart == EquationPart.MINUS || currentPart == EquationPart.PLUS
+                    || currentPart == EquationPart.MULT || currentPart == EquationPart.DIV || currentPart == EquationPart.ROOT
+                    || currentPart == EquationPart.PARENTHESIS_OPEN || currentPart == EquationPart.COMMA)) {
+                return false;
+            }
+            lastPart = currentPart;
         }
-        return true;
+        if (lastPart == EquationPart.PARENTHESIS_OPEN) {
+            parenthesis++;
+        } else if (lastPart == EquationPart.PARENTHESIS_CLOSE) {
+            parenthesis--;
+        }
+        return parenthesis == 0;
     }
+
+    private EquationPart identifyPart (char c) {
+            if ( Character.isDigit(c)) {
+                return EquationPart.NUMBER;
+            } else if (c == '+') {
+                return EquationPart.PLUS;
+            } else if (c == '-') {
+                return EquationPart.MINUS;
+            } else if (c == '*' || c == 'x') {
+                return EquationPart.MULT;
+            } else if (c == '/' || c == ':') {
+                return EquationPart.DIV;
+            } else if (c == '(') {
+                return EquationPart.PARENTHESIS_OPEN;
+            } else if (c == ')') {
+                return EquationPart.PARENTHESIS_CLOSE;
+            } else if (c == '\u221a') {
+                return EquationPart.ROOT;
+            } else if (c == '²') {
+                return EquationPart.SQUARE;
+            } else if (c == ',') {
+                return EquationPart.COMMA;
+            } else {
+                return EquationPart.ERROR;
+            }
+    }
+
 
     private String cutEquation(String equationToCut) {
         StringBuilder equation = new StringBuilder();
