@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class CalculatorApp extends JFrame implements ActionListener {
@@ -191,6 +192,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         textArea.setText(cutEquation(textArea.getText()));
+        calculate(textArea.getText());
         if (correctEquation()) {
             textArea.setText("Korrekt");
         } else {
@@ -211,7 +213,11 @@ public class CalculatorApp extends JFrame implements ActionListener {
         }
     }
 
-
+    /**
+     * Checks whether the equation has correct syntax.
+     *
+     * @return true if equation is correct. false if not.
+     */
     private boolean correctEquation() {
         String equation = textArea.getText();
         EquationPart lastPart = EquationPart.BEGINNING;
@@ -264,6 +270,12 @@ public class CalculatorApp extends JFrame implements ActionListener {
         return parenthesis == 0;
     }
 
+    /**
+     * Identifies character.
+     *
+     * @param c The character to be checked
+     * @return
+     */
     private EquationPart identifyPart (char c) {
             if ( Character.isDigit(c)) {
                 return EquationPart.NUMBER;
@@ -290,7 +302,12 @@ public class CalculatorApp extends JFrame implements ActionListener {
             }
     }
 
-
+    /**
+     * Cuts the equation for easier calculation.
+     *
+     * @param equationToCut The equation to be cutted.
+     * @return Cutted equation
+     */
     private String cutEquation(String equationToCut) {
         StringBuilder equation = new StringBuilder();
         boolean symbol = false;
@@ -306,5 +323,59 @@ public class CalculatorApp extends JFrame implements ActionListener {
             }
         }
         return equation.toString();
+    }
+
+    private String calculate(final String eq) {
+        ArrayList<Term> termList = prioritize(fillList(eq));
+
+        return " = ";
+    }
+
+    private ArrayList<Term> fillList (final String eq) {
+        ArrayList<Term> terms = new ArrayList<>();
+        EquationPart last = EquationPart.BEGINNING;
+        EquationPart current;
+        int priority = 0;
+
+        String t = "";
+
+        for (int i = 0; i < eq.length(); i++) {
+            current = identifyPart(eq.charAt(i));
+            if (!((i == 0) || (last == EquationPart.NUMBER && (current == EquationPart.NUMBER || current == EquationPart.COMMA))
+                    || last == EquationPart.COMMA && current == EquationPart.NUMBER)) {
+                terms.add(new Term(t, priority, last));
+                t = "";
+            }
+            t += eq.charAt(i);
+            last = current;
+        }
+        terms.add(new Term(t, priority, last));
+
+        return terms;
+    }
+
+    private ArrayList<Term> prioritize (ArrayList<Term> termList) {
+        int priority = 1;
+        for (int i = 0; i < termList.size(); i++) {
+            Term term = termList.get(i);
+
+            if (term.getType() == EquationPart.SQUARE) {
+                termList.get(i).setPriority(priority + 1);
+            } else if (term.getType() == EquationPart.PARENTHESIS_CLOSE) {
+                priority--;
+                termList.get(i).setPriority(priority);
+            } else if (term.getType() == EquationPart.ROOT) {
+                priority++;
+                termList.get(i).setPriority(priority);
+            } else {
+                termList.get(i).setPriority(priority);
+            }
+
+            if (term.getType() == EquationPart.PARENTHESIS_OPEN) {
+                priority++;
+            }
+        }
+
+        return termList;
     }
 }
