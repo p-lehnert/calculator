@@ -226,7 +226,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
         for(int i = 0; i < equation.length(); i++) {
             c = equation.charAt(i);
             EquationPart currentPart = identifyPart(c);
-            if (lastPart == EquationPart.ERROR || currentPart == EquationPart.ERROR) {
+            if (currentPart == EquationPart.ERROR) {
                 return false;
             }
             switch (lastPart) {
@@ -255,9 +255,10 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 case PARENTHESIS_CLOSE:
                     parenthesis--;
             }
-            if (i == equation.length() - 1 && (currentPart == EquationPart.ERROR || currentPart == EquationPart.MINUS || currentPart == EquationPart.PLUS
-                    || currentPart == EquationPart.MULT || currentPart == EquationPart.DIV || currentPart == EquationPart.ROOT
-                    || currentPart == EquationPart.PARENTHESIS_OPEN || currentPart == EquationPart.COMMA)) {
+            if (i == equation.length() - 1 && (currentPart == EquationPart.MINUS || currentPart == EquationPart.PLUS
+                    || currentPart == EquationPart.MULT || currentPart == EquationPart.DIV
+                    || currentPart == EquationPart.ROOT || currentPart == EquationPart.PARENTHESIS_OPEN
+                    || currentPart == EquationPart.COMMA)) {
                 return false;
             }
             lastPart = currentPart;
@@ -326,9 +327,15 @@ public class CalculatorApp extends JFrame implements ActionListener {
     }
 
     private String calculate(final String eq) {
-        ArrayList<Term> termList = prioritize(fillList(eq));
+        ArrayList<Term> termList = prioritize(negativeNumbers(fillList(eq)));
+        int highest = getHighestPriority(termList);
+        float result = 0;
 
-        return " = ";
+        //while (termList.size() > 1) {
+
+        //}
+
+        return String.valueOf(result);
     }
 
     private ArrayList<Term> fillList (final String eq) {
@@ -354,21 +361,36 @@ public class CalculatorApp extends JFrame implements ActionListener {
         return terms;
     }
 
+    private ArrayList<Term> negativeNumbers (ArrayList<Term> terms) {
+        ArrayList<Integer> indexesToRemove = new ArrayList<>();
+        for (int i = 0; i < terms.size() - 1; i++) {
+            if (terms.get(i).getType() != EquationPart.NUMBER && terms.get(i + 1).getType() == EquationPart.MINUS) {
+                terms.get(i + 2).setTerm("-" + terms.get(i + 2).getTerm());
+                indexesToRemove.add(i + 1);
+            } else if (i == 0 && terms.get(i).getType() == EquationPart.MINUS) {
+                terms.get(i + 1).setTerm("-" + terms.get(i + 1).getTerm());
+                indexesToRemove.add(0);
+            }
+        }
+        for (int index : indexesToRemove) {
+            terms.remove(index);
+        }
+        return terms;
+    }
+
     private ArrayList<Term> prioritize (ArrayList<Term> termList) {
         int priority = 1;
-        for (int i = 0; i < termList.size(); i++) {
-            Term term = termList.get(i);
-
+        for (Term term : termList) {
             if (term.getType() == EquationPart.SQUARE) {
-                termList.get(i).setPriority(priority + 1);
+                term.setPriority(priority + 1);
             } else if (term.getType() == EquationPart.PARENTHESIS_CLOSE) {
                 priority--;
-                termList.get(i).setPriority(priority);
+                term.setPriority(priority);
             } else if (term.getType() == EquationPart.ROOT) {
                 priority++;
-                termList.get(i).setPriority(priority);
+                term.setPriority(priority);
             } else {
-                termList.get(i).setPriority(priority);
+                term.setPriority(priority);
             }
 
             if (term.getType() == EquationPart.PARENTHESIS_OPEN) {
@@ -377,5 +399,13 @@ public class CalculatorApp extends JFrame implements ActionListener {
         }
 
         return termList;
+    }
+
+    private int getHighestPriority (final ArrayList<Term> terms) {
+        int highest = 0;
+        for (Term term : terms) {
+            highest = Math.max(highest, term.getPriority());
+        }
+        return highest;
     }
 }
