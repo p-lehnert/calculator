@@ -331,11 +331,14 @@ public class CalculatorApp extends JFrame implements ActionListener {
     private String calculate(final String eq) {
         termList = prioritize(negativeNumbers(fillList(eq)));
         int highest = getHighestPriority(termList);
-        ArrayList<Term> listPart = new ArrayList<>();
-        int fstIndex = -1;
-        int lstIndex = -1;
+        ArrayList<Term> listPart;
+        int fstIndex;
+        int lstIndex;
 
         while (termList.size() > 1) {
+            listPart = new ArrayList<>();
+            fstIndex = -1;
+            lstIndex = -1;
             for(Term term : termList) {
                 if (!listPart.isEmpty() && term.getPriority() != highest) {
                     lstIndex = termList.indexOf(term) - 1;
@@ -353,6 +356,12 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 termList.subList(fstIndex + 1, lstIndex + 1).clear();
             } else {
                 termList.subList(fstIndex + 1, lstIndex).clear();
+            }
+            while (termList.get(fstIndex - 1).getType() == EquationPart.PARENTHESIS_OPEN &&
+                    (termList.get(fstIndex + 1).getType() == EquationPart.PARENTHESIS_CLOSE || fstIndex + 1 == termList.size())) {
+                termList.remove(fstIndex + 1);
+                termList.remove(fstIndex - 1);
+                fstIndex--;
             }
         }
 
