@@ -13,6 +13,8 @@ public class CalculatorApp extends JFrame implements ActionListener {
 
     private final JTextArea textArea;
 
+    private ArrayList<Term> termList;
+
     public CalculatorApp () {
         super("Calculator");
 
@@ -192,11 +194,11 @@ public class CalculatorApp extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         textArea.setText(cutEquation(textArea.getText()));
-        calculate(textArea.getText());
+
         if (correctEquation()) {
-            textArea.setText("Korrekt");
+            textArea.setText(calculate(textArea.getText()));
         } else {
-            textArea.setText("Inkorrekt");
+            textArea.setText("Incorrect syntax - try again");
         }
     }
 
@@ -327,15 +329,75 @@ public class CalculatorApp extends JFrame implements ActionListener {
     }
 
     private String calculate(final String eq) {
-        ArrayList<Term> termList = prioritize(negativeNumbers(fillList(eq)));
+        termList = prioritize(negativeNumbers(fillList(eq)));
         int highest = getHighestPriority(termList);
-        float result = 0;
+        ArrayList<Term> listPart = new ArrayList<>();
+        int fstIndex = -1;
+        int lstIndex = -1;
 
-        //while (termList.size() > 1) {
+        while (termList.size() > 1) {
+            for(Term term : termList) {
+                if (!listPart.isEmpty() && term.getPriority() != highest) {
+                    lstIndex = termList.indexOf(term) - 1;
+                    break;
+                } else if (term.getPriority() == highest && listPart.isEmpty()) {
+                    listPart.add(term);
+                    fstIndex = termList.indexOf(term);
+                } else if (term.getPriority() == highest) {
+                    listPart.add(term);
+                }
+            }
+            lstIndex = lstIndex == -1 ? termList.size() : lstIndex;
+            termList.set(fstIndex, calculatePart(listPart));
+            if (lstIndex >= fstIndex + 1 && lstIndex < termList.size()) {
+                termList.subList(fstIndex + 1, lstIndex + 1).clear();
+            } else {
+                termList.subList(fstIndex + 1, lstIndex).clear();
+            }
+        }
 
-        //}
+        String result = termList.get(0).getTerm();
+        termList = new ArrayList<>();
+        return result;
+    }
 
-        return String.valueOf(result);
+    private Term calculatePart (ArrayList<Term> listPart) {
+        double result = 0;
+
+        EquationPart flag = EquationPart.BEGINNING;
+
+        for (int i = 0; i < listPart.size(); i++) {
+            if (listPart.get(i).getType() == EquationPart.NUMBER && (flag == EquationPart.BEGINNING ||
+                    flag == EquationPart.PLUS)) {
+                result += Double.parseDouble(listPart.get(i).getTerm());
+            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.MINUS) {
+                result -= Double.parseDouble(listPart.get(i).getTerm());
+            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.MULT) {
+                result *= Double.parseDouble(listPart.get(i).getTerm());
+            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.DIV) {
+                if (Double.parseDouble(listPart.get(i).getTerm()) == 0) {
+                    return new Term("ERROR - DIVIDED BY ZERO", 0, EquationPart.ERROR);
+                } else {
+                    result /= Double.parseDouble(listPart.get(i).getTerm());
+                }
+            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.ROOT) {
+                result = Math.sqrt(Float.parseFloat(listPart.get(i).getTerm()));
+            } else if (listPart.get(i).getType() == EquationPart.PLUS) {
+                flag = EquationPart.PLUS;
+            } else if (listPart.get(i).getType() == EquationPart.MINUS) {
+                flag = EquationPart.MINUS;
+            } else if (listPart.get(i).getType() == EquationPart.MULT) {
+                flag = EquationPart.MULT;
+            } else if (listPart.get(i).getType() == EquationPart.DIV) {
+                flag = EquationPart.DIV;
+            } else if (listPart.get(i).getType() == EquationPart.ROOT) {
+                flag = EquationPart.ROOT;
+            }
+
+
+        }
+
+        return new Term(Double.toString(result), listPart.get(0).getPriority() - 1, EquationPart.NUMBER);
     }
 
     private ArrayList<Term> fillList (final String eq) {
