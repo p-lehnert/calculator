@@ -330,12 +330,13 @@ public class CalculatorApp extends JFrame implements ActionListener {
 
     private String calculate(final String eq) {
         termList = prioritize(negativeNumbers(fillList(eq)));
-        int highest = getHighestPriority(termList);
+        int highest;
         ArrayList<Term> listPart;
         int fstIndex;
         int lstIndex;
 
         while (termList.size() > 1) {
+            highest = getHighestPriority(termList);
             listPart = new ArrayList<>();
             fstIndex = -1;
             lstIndex = -1;
@@ -351,17 +352,31 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 }
             }
             lstIndex = lstIndex == -1 ? termList.size() : lstIndex;
-            termList.set(fstIndex, calculatePart(listPart));
-            if (lstIndex >= fstIndex + 1 && lstIndex < termList.size()) {
-                termList.subList(fstIndex + 1, lstIndex + 1).clear();
+            if (listPart.get(0).getType() == EquationPart.SQUARE && termList.get(fstIndex - 1).getType() == EquationPart.NUMBER &&
+            fstIndex > 0) {
+                termList.get(fstIndex - 1).setTerm(Double.toString(Double.parseDouble(termList.get(fstIndex - 1).getTerm()) *
+                        Double.parseDouble(termList.get(fstIndex - 1).getTerm())));
+                termList.remove(fstIndex);
             } else {
-                termList.subList(fstIndex + 1, lstIndex).clear();
+                termList.set(fstIndex, calculatePart(listPart));
+                if (fstIndex < lstIndex) {
+                    if (lstIndex < termList.size()) {
+                        termList.subList(fstIndex + 1, lstIndex + 1).clear();
+                    } else {
+                        termList.subList(fstIndex + 1, lstIndex).clear();
+                    }
+                }
             }
-            while (termList.get(fstIndex - 1).getType() == EquationPart.PARENTHESIS_OPEN &&
-                    (termList.get(fstIndex + 1).getType() == EquationPart.PARENTHESIS_CLOSE || fstIndex + 1 == termList.size())) {
-                termList.remove(fstIndex + 1);
-                termList.remove(fstIndex - 1);
-                fstIndex--;
+            if (fstIndex > 0 && termList.size() > 1) {
+                while (termList.get(fstIndex - 1).getType() == EquationPart.PARENTHESIS_OPEN &&
+                        (termList.get(fstIndex + 1).getType() == EquationPart.PARENTHESIS_CLOSE || fstIndex + 1 == termList.size())) {
+                    termList.remove(fstIndex + 1);
+                    termList.remove(fstIndex - 1);
+                    fstIndex--;
+                    if(fstIndex == 0) {
+                        break;
+                    }
+                }
             }
         }
 
@@ -375,31 +390,31 @@ public class CalculatorApp extends JFrame implements ActionListener {
 
         EquationPart flag = EquationPart.BEGINNING;
 
-        for (int i = 0; i < listPart.size(); i++) {
-            if (listPart.get(i).getType() == EquationPart.NUMBER && (flag == EquationPart.BEGINNING ||
+        for (Term term : listPart) {
+            if (term.getType() == EquationPart.NUMBER && (flag == EquationPart.BEGINNING ||
                     flag == EquationPart.PLUS)) {
-                result += Double.parseDouble(listPart.get(i).getTerm());
-            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.MINUS) {
-                result -= Double.parseDouble(listPart.get(i).getTerm());
-            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.MULT) {
-                result *= Double.parseDouble(listPart.get(i).getTerm());
-            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.DIV) {
-                if (Double.parseDouble(listPart.get(i).getTerm()) == 0) {
+                result += Double.parseDouble(term.getTerm());
+            } else if (term.getType() == EquationPart.NUMBER && flag == EquationPart.MINUS) {
+                result -= Double.parseDouble(term.getTerm());
+            } else if (term.getType() == EquationPart.NUMBER && flag == EquationPart.MULT) {
+                result *= Double.parseDouble(term.getTerm());
+            } else if (term.getType() == EquationPart.NUMBER && flag == EquationPart.DIV) {
+                if (Double.parseDouble(term.getTerm()) == 0) {
                     return new Term("ERROR - DIVIDED BY ZERO", 0, EquationPart.ERROR);
                 } else {
-                    result /= Double.parseDouble(listPart.get(i).getTerm());
+                    result /= Double.parseDouble(term.getTerm());
                 }
-            } else if (listPart.get(i).getType() == EquationPart.NUMBER && flag == EquationPart.ROOT) {
-                result = Math.sqrt(Float.parseFloat(listPart.get(i).getTerm()));
-            } else if (listPart.get(i).getType() == EquationPart.PLUS) {
+            } else if (term.getType() == EquationPart.NUMBER && flag == EquationPart.ROOT) {
+                result = Math.sqrt(Float.parseFloat(term.getTerm()));
+            } else if (term.getType() == EquationPart.PLUS) {
                 flag = EquationPart.PLUS;
-            } else if (listPart.get(i).getType() == EquationPart.MINUS) {
+            } else if (term.getType() == EquationPart.MINUS) {
                 flag = EquationPart.MINUS;
-            } else if (listPart.get(i).getType() == EquationPart.MULT) {
+            } else if (term.getType() == EquationPart.MULT) {
                 flag = EquationPart.MULT;
-            } else if (listPart.get(i).getType() == EquationPart.DIV) {
+            } else if (term.getType() == EquationPart.DIV) {
                 flag = EquationPart.DIV;
-            } else if (listPart.get(i).getType() == EquationPart.ROOT) {
+            } else if (term.getType() == EquationPart.ROOT) {
                 flag = EquationPart.ROOT;
             }
 
