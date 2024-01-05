@@ -298,7 +298,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 return EquationPart.ROOT;
             } else if (c == '²') {
                 return EquationPart.SQUARE;
-            } else if (c == ',') {
+            } else if (c == ',' || c == '.') {
                 return EquationPart.COMMA;
             } else {
                 return EquationPart.ERROR;
