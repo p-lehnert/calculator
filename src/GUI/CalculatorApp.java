@@ -288,7 +288,7 @@ public class CalculatorApp extends JFrame implements ActionListener {
                 return EquationPart.MINUS;
             } else if (c == '*' || c == 'x') {
                 return EquationPart.MULT;
-            } else if (c == '/' || c == ':') {
+            } else if (c == '/' || c == ':' || c == '\u00f7') {
                 return EquationPart.DIV;
             } else if (c == '(') {
                 return EquationPart.PARENTHESIS_OPEN;
@@ -450,7 +450,8 @@ public class CalculatorApp extends JFrame implements ActionListener {
     private ArrayList<Term> negativeNumbers (ArrayList<Term> terms) {
         ArrayList<Integer> indexesToRemove = new ArrayList<>();
         for (int i = 0; i < terms.size() - 1; i++) {
-            if (terms.get(i).getType() != EquationPart.NUMBER && terms.get(i + 1).getType() == EquationPart.MINUS) {
+            if (terms.get(i).getType() != EquationPart.NUMBER && terms.get(i).getType() != EquationPart.PARENTHESIS_CLOSE
+                    && terms.get(i + 1).getType() == EquationPart.MINUS) {
                 terms.get(i + 2).setTerm("-" + terms.get(i + 2).getTerm());
                 indexesToRemove.add(i + 1);
             } else if (i == 0 && terms.get(i).getType() == EquationPart.MINUS) {
